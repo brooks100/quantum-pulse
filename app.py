@@ -8,43 +8,7 @@ import struct
 import math
 
 # ──────────────────────────────────────────────
-# GENERATE QUANTUM PULSE SOUND (base64 WAV)
-# ──────────────────────────────────────────────
-def make_quantum_pulse_wav():
-    sample_rate = 44100
-    duration = 0.6
-    n = int(sample_rate * duration)
-    samples = []
-    for i in range(n):
-        t = i / sample_rate
-        env = math.exp(-t * 5)
-        # Rising sweep 200->1200Hz
-        freq1 = 200 + (1200 - 200) * (t / duration)
-        sweep = math.sin(2 * math.pi * freq1 * t) * 0.3 * env
-        # Sub bass 60Hz
-        bass = math.sin(2 * math.pi * 60 * t) * 0.4 * env
-        # High sparkle 2400Hz delayed
-        sparkle = math.sin(2 * math.pi * 2400 * t) * 0.15 * math.exp(-max(0, t - 0.15) * 8) if t > 0.15 else 0
-        # Noise burst
-        noise = (hash(str(i)) % 1000 / 500 - 1) * 0.2 * math.exp(-t * 20) if t < 0.15 else 0
-        val = sweep + bass + sparkle + noise
-        samples.append(max(-1, min(1, val)))
-    # Build WAV
-    raw = b''
-    for s in samples:
-        raw += struct.pack('<h', int(s * 32767))
-    # WAV header
-    data_size = len(raw)
-    header = b'RIFF' + struct.pack('<I', 36 + data_size) + b'WAVE'
-    fmt = b'fmt ' + struct.pack('<IHHIIHH', 16, 1, 1, sample_rate, sample_rate * 2, 2, 16)
-    data = b'data' + struct.pack('<I', data_size) + raw
-    wav = header + fmt + data
-    return base64.b64encode(wav).decode()
-
-SOUND_B64 = make_quantum_pulse_wav()
-
-# ──────────────────────────────────────────────
-# PAGE CONFIG
+# FORCE DARK MODE FIRST — nothing can override this
 # ──────────────────────────────────────────────
 st.set_page_config(
     page_title="QUANTUM PULSE",
@@ -53,32 +17,35 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
+# Force dark theme at the very top
+st.markdown('<style>:root{color-scheme:dark;}</style>', unsafe_allow_html=True)
+
 # ──────────────────────────────────────────────
-# THEME + SOUND INJECTION (runs in main page)
+# THEME — full dark styling
 # ──────────────────────────────────────────────
-st.markdown(f"""
+st.markdown("""
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
-* {{ font-family: 'Space Grotesk', sans-serif; }}
-code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
+* { font-family: 'Space Grotesk', sans-serif; }
+code, .mono { font-family: 'JetBrains Mono', monospace; }
 
-.stApp {{
+.stApp {
     background: 
         radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,240,255,0.08), transparent),
         radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,0.08), transparent),
         radial-gradient(ellipse 60% 40% at 20% 100%, rgba(255,0,170,0.06), transparent),
         #050510;
     color: #e8e8ff;
-}}
+}
 
-[data-testid="stSidebar"] {{
+[data-testid="stSidebar"] {
     background: rgba(10,10,25,0.85);
     backdrop-filter: blur(20px);
     border-right: 1px solid rgba(0,240,255,0.15);
-}}
+}
 
-.app-title {{
+.app-title {
     font-family: 'Rajdhani', sans-serif;
     font-weight: 700;
     font-size: 4rem;
@@ -92,14 +59,14 @@ code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
     background-clip: text;
     filter: drop-shadow(0 0 30px rgba(0,240,255,0.4));
     animation: titleShimmer 3s ease-in-out infinite;
-}}
+}
 
-@keyframes titleShimmer {{
-    0%, 100% {{ filter: drop-shadow(0 0 20px rgba(0,240,255,0.3)); }}
-    50% {{ filter: drop-shadow(0 0 40px rgba(124,58,237,0.5)); }}
-}}
+@keyframes titleShimmer {
+    0%, 100% { filter: drop-shadow(0 0 20px rgba(0,240,255,0.3)); }
+    50% { filter: drop-shadow(0 0 40px rgba(124,58,237,0.5)); }
+}
 
-.app-subtitle {{
+.app-subtitle {
     text-align: center;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.75rem;
@@ -107,9 +74,9 @@ code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
     text-transform: uppercase;
     color: #6b7280;
     margin-bottom: 2rem;
-}}
+}
 
-.pulse-line {{
+.pulse-line {
     height: 2px;
     background: linear-gradient(90deg, transparent, #00f0ff, #7c3aed, #ff00aa, transparent);
     background-size: 200% 100%;
@@ -117,14 +84,14 @@ code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
     margin: 0 auto 2rem auto;
     width: 60%;
     border-radius: 2px;
-}}
+}
 
-@keyframes pulseSlide {{
-    0% {{ background-position: 200% 0; }}
-    100% {{ background-position: -200% 0; }}
-}}
+@keyframes pulseSlide {
+    0% { background-position: 200% 0; }
+    100% { background-position: -200% 0; }
+}
 
-.glass-card {{
+.glass-card {
     background: rgba(20,20,45,0.5);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
@@ -134,37 +101,37 @@ code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
-}}
-.glass-card:hover {{
+}
+.glass-card:hover {
     border-color: rgba(0,240,255,0.3);
     transform: translateY(-3px);
     box-shadow: 0 10px 40px rgba(0,240,255,0.1);
-}}
-.glass-card::before {{
+}
+.glass-card::before {
     content: '';
     position: absolute;
     top: 0; left: 0; right: 0;
     height: 1px;
     background: linear-gradient(90deg, transparent, rgba(0,240,255,0.5), transparent);
-}}
+}
 
-.card-label {{
+.card-label {
     color: #6b7280;
     font-size: 0.65rem;
     letter-spacing: 0.25em;
     text-transform: uppercase;
     font-family: 'JetBrains Mono', monospace;
     margin-bottom: 0.4rem;
-}}
-.card-value {{
+}
+.card-value {
     font-family: 'Rajdhani', sans-serif;
     font-size: 2rem;
     font-weight: 700;
     color: #f0f0ff;
     line-height: 1.1;
-}}
+}
 
-.stButton > button {{
+.stButton > button {
     background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 50%, #ff00aa 100%);
     background-size: 200% 200%;
     color: #ffffff;
@@ -180,18 +147,18 @@ code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
     width: 100%;
     transition: all 0.3s ease;
     animation: btnGradient 4s ease infinite;
-}}
-@keyframes btnGradient {{
-    0%, 100% {{ background-position: 0% 50%; }}
-    50% {{ background-position: 100% 50%; }}
-}}
-.stButton > button:hover {{
+}
+@keyframes btnGradient {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+.stButton > button:hover {
     transform: translateY(-2px) scale(1.01);
     box-shadow: 0 0 50px rgba(0,240,255,0.5), 0 0 80px rgba(124,58,237,0.3);
-}}
-.stButton > button:active {{ transform: scale(0.98); }}
+}
+.stButton > button:active { transform: scale(0.98); }
 
-.section-header {{
+.section-header {
     font-family: 'Rajdhani', sans-serif;
     font-size: 1.4rem;
     font-weight: 600;
@@ -202,61 +169,60 @@ code, .mono {{ font-family: 'JetBrains Mono', monospace; }}
     display: flex;
     align-items: center;
     gap: 0.8rem;
-}}
-.section-header::before {{
+}
+.section-header::before {
     content: '';
     width: 4px;
     height: 24px;
     background: linear-gradient(180deg, #00f0ff, #7c3aed);
     border-radius: 2px;
-}}
+}
 
-[data-testid="stDataFrame"] {{
+[data-testid="stDataFrame"] {
     border-radius: 12px;
     overflow: hidden;
     border: 1px solid rgba(255,255,255,0.08);
-}}
+    background-color: #101025 !important;
+}
+[data-testid="stDataFrame"] table { color: #e8e8ff !important; }
+[data-testid="stDataFrame"] th { 
+    background-color: #1a1a3a !important; 
+    color: #00f0ff !important;
+}
+[data-testid="stDataFrame"] tr:nth-child(even) { background-color: #151530 !important; }
+[data-testid="stDataFrame"] tr:nth-child(odd) { background-color: #101025 !important; }
 
-/* HIDE top-right menu + deploy + footer completely */
-#MainMenu {{ visibility: hidden; display: none; }}
-.stDeployButton {{ display: none !important; }}
-footer {{ visibility: hidden; display: none; }}
-[data-testid="stToolbar"] {{ display: none !important; }}
-[data-testid="stStatusWidget"] {{ display: none !important; }}
+/* Hide top-right menu & footer */
+#MainMenu { visibility: hidden; display: none; }
+.stDeployButton { display: none !important; }
+footer { visibility: hidden; display: none; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stStatusWidget"] { display: none !important; }
 
 .stTextInput > div > div > input,
 .stNumberInput > div > div > input,
-.stTextArea > div > div > textarea {{
+.stTextArea > div > div > textarea {
     background: rgba(20,20,45,0.6) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     color: #e0e0ff !important;
     border-radius: 8px !important;
-}}
+}
 .stTextInput > div > div > input:focus,
-.stNumberInput > div > div > input:focus {{
+.stNumberInput > div > div > input:focus {
     border-color: #00f0ff !important;
     box-shadow: 0 0 15px rgba(0,240,255,0.2) !important;
-}}
+}
 
-.stSelectbox > div > div > div {{
+.stSelectbox > div > div > div {
     background: rgba(20,20,45,0.6) !important;
     border: 1px solid rgba(255,255,255,0.1) !important;
     border-radius: 8px !important;
-}}
-</style>
+}
 
-<!-- ⚡ SOUND INJECTION — runs in main page, not iframe -->
-<img src="x" style="display:none" onerror="
-var qpAudio = new Audio('data:audio/wav;base64,{SOUND_B64}');
-qpAudio.volume = 0.6;
-document.addEventListener('click', function(e){{
-    var b = e.target.closest('button');
-    if(b && b.textContent && b.textContent.indexOf('SCAN') !== -1){{
-        try {{ qpAudio.currentTime = 0; qpAudio.play(); }} catch(err){{}}
-    }}
-}});
-this.remove();
-">
+.stMetric { background-color: transparent !important; }
+.stMarkdown, .stText { color: #e8e8ff !important; }
+div[data-testid="stMarkdownContainer"] { color: #e8e8ff !important; }
+</style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
@@ -393,7 +359,7 @@ if scan_now:
     st.session_state.history.append({"time": scan_time, "count": len(signals)})
     st.success(f"✅ SCAN COMPLETE — {len(signals)} of {len(tickers_list)} assets found")
 else:
-    st.info("👆 Click the scan button — you'll hear a quantum pulse sound and all markets will be analyzed")
+    st.info("👆 Click the scan button — all markets will be analyzed")
 
 # ──────────────────────────────────────────────
 # SIGNAL MATRIX
