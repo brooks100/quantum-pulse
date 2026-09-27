@@ -13,7 +13,7 @@ st.set_page_config(
 )
 
 # ──────────────────────────────────────────────
-# SUPER-STRONG DARK MODE — forces EVERYTHING dark
+# DARK MODE — FORCED
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
@@ -22,31 +22,23 @@ st.markdown("""
 * { font-family: 'Space Grotesk', sans-serif; }
 code, .mono { font-family: 'JetBrains Mono', monospace; }
 
-.stApp, .block-container {
-    background: 
-        radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,240,255,0.08), transparent),
-        radial-gradient(ellipse 60% 40% at 80% 100%, rgba(168,85,247,0.08), transparent),
-        radial-gradient(ellipse 60% 40% at 20% 100%, rgba(255,0,170,0.06), transparent),
-        #050510;
+html, body, .stApp, .block-container {
+    background-color: #050510 !important;
     color: #e8e8ff !important;
 }
 
 [data-testid="stSidebar"] {
     background: rgba(10,10,25,0.92) !important;
-    border-right: 1px solid rgba(0,240,255,0.15);
+    border-right: 1px solid rgba(0,240,255,0.15) !important;
 }
 
 /* ==============================================
-   FORCE DATAFRAME TABLES DARK — NO WHITE BOXES
+   TABLES — NO WHITE BOXES EVER
    ============================================== */
 div[data-testid="stDataFrame"] {
     background-color: #0f0f23 !important;
-    border-radius: 12px;
     border: 1px solid rgba(0,240,255,0.2) !important;
-    padding: 0 !important;
-}
-div[data-testid="stDataFrame"] > div {
-    background-color: #0f0f23 !important;
+    border-radius: 12px !important;
 }
 div[data-testid="stDataFrame"] table {
     background-color: #0f0f23 !important;
@@ -55,10 +47,6 @@ div[data-testid="stDataFrame"] table {
 div[data-testid="stDataFrame"] th {
     background-color: #1a1a3a !important;
     color: #00f0ff !important;
-    border-bottom: 1px solid rgba(0,240,255,0.2) !important;
-}
-div[data-testid="stDataFrame"] tr {
-    background-color: #0f0f23 !important;
 }
 div[data-testid="stDataFrame"] tr:nth-child(even) {
     background-color: #14142d !important;
@@ -68,39 +56,20 @@ div[data-testid="stDataFrame"] tr:nth-child(odd) {
 }
 div[data-testid="stDataFrame"] td {
     color: #e8e8ff !important;
-    border: none !important;
-}
-div[data-testid="stDataFrame"] [data-testid="stTable"] {
-    background-color: #0f0f23 !important;
 }
 
-/* Remove ANY white background from ANY container */
-div[data-testid="stVerticalBlock"],
-div[data-testid="stHorizontalBlock"],
-div[data-testid="stMarkdown"],
-div[data-testid="stExpander"] {
-    background-color: transparent !important;
-}
-
-/* Title & Animation */
+/* Title */
 .app-title {
     font-family: 'Rajdhani', sans-serif;
     font-weight: 700;
     font-size: 4rem;
     text-align: center;
     letter-spacing: 0.35em;
-    line-height: 1;
-    margin: 0.5rem 0 0.2rem 0;
     background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 50%, #ff00aa 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    filter: drop-shadow(0 0 30px rgba(0,240,255,0.4));
-    animation: titleShimmer 3s ease-in-out infinite;
-}
-@keyframes titleShimmer {
-    0%, 100% { filter: drop-shadow(0 0 20px rgba(0,240,255,0.3)); }
-    50% { filter: drop-shadow(0 0 40px rgba(124,58,237,0.5)); }
+    margin: 0.5rem 0 0.2rem 0;
 }
 .app-subtitle {
     text-align: center;
@@ -125,19 +94,12 @@ div[data-testid="stExpander"] {
     100% { background-position: -200% 0; }
 }
 
-/* Glass Cards */
+/* Cards */
 .glass-card {
     background: rgba(20,20,45,0.5) !important;
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.08) !important;
     border-radius: 16px;
     padding: 1.4rem 1.6rem;
-    transition: all 0.3s ease;
-}
-.glass-card:hover {
-    border-color: rgba(0,240,255,0.3);
-    transform: translateY(-3px);
-    box-shadow: 0 10px 40px rgba(0,240,255,0.1);
 }
 .card-label {
     color: #6b7280;
@@ -152,13 +114,11 @@ div[data-testid="stExpander"] {
     font-size: 2rem;
     font-weight: 700;
     color: #f0f0ff;
-    line-height: 1.1;
 }
 
 /* Buttons */
 .stButton > button {
     background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 50%, #ff00aa 100%);
-    background-size: 200% 200%;
     color: #ffffff;
     border: none;
     border-radius: 14px;
@@ -168,18 +128,7 @@ div[data-testid="stExpander"] {
     font-size: 1.1rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
-    box-shadow: 0 0 30px rgba(0,240,255,0.25);
     width: 100%;
-    transition: all 0.3s ease;
-    animation: btnGradient 4s ease infinite;
-}
-@keyframes btnGradient {
-    0%, 100% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-}
-.stButton > button:hover {
-    transform: translateY(-2px) scale(1.01);
-    box-shadow: 0 0 50px rgba(0,240,255,0.5);
 }
 
 /* Section Headers */
@@ -191,16 +140,6 @@ div[data-testid="stExpander"] {
     text-transform: uppercase;
     color: #e0e0ff;
     margin: 1.5rem 0 0.8rem 0;
-    display: flex;
-    align-items: center;
-    gap: 0.8rem;
-}
-.section-header::before {
-    content: '';
-    width: 4px;
-    height: 24px;
-    background: linear-gradient(180deg, #00f0ff, #7c3aed);
-    border-radius: 2px;
 }
 
 /* Inputs */
@@ -210,16 +149,12 @@ div[data-testid="stExpander"] {
     background: rgba(20,20,45,0.7) !important;
     border: 1px solid rgba(255,255,255,0.15) !important;
     color: #e0e0ff !important;
-    border-radius: 8px !important;
-}
-.stTextInput > div > div > input:focus,
-.stNumberInput > div > div > input:focus {
-    border-color: #00f0ff !important;
-    box-shadow: 0 0 15px rgba(0,240,255,0.2) !important;
 }
 
-/* Hide Menu & Footer */
-#MainMenu, .stDeployButton, footer, [data-testid="stToolbar"] { display: none !important; }
+/* Hide Menu */
+#MainMenu, .stDeployButton, footer, [data-testid="stToolbar"] {
+    display: none !important;
+}
 </style>
 """, unsafe_allow_html=True)
 
@@ -248,24 +183,43 @@ def get_signal(ticker):
         above_ma = price > ma20
         recent_high = hist['High'].tail(10).max()
         dd = ((price - recent_high) / recent_high) * 100
+
         if above_ma and chg_1w > 0 and chg_1m > 0:
             signal = "LONG"
         elif (not above_ma) or (chg_1w < -3) or (dd < -8):
             signal = "SHORT"
         else:
             signal = "HOLD"
-        return {"Asset": ticker, "Price": round(price, 2), "1W %": round(chg_1w, 2), "1M %": round(chg_1m, 2), "Signal": signal}
+
+        return {
+            "Asset": ticker,
+            "Price": round(price, 2),
+            "1W %": round(chg_1w, 2),
+            "1M %": round(chg_1m, 2),
+            "Signal": signal
+        }
     except:
         return None
 
 # ──────────────────────────────────────────────
 # ASSET LIST
 # ──────────────────────────────────────────────
-STOCKS = ["AAPL","MSFT","GOOGL","GOOG","AMZN","NVDA","META","TSLA","AMD","NFLX","ORCL","CRM","ADBE","INTC","IBM","QCOM","TXN","AVGO","JPM","BAC","GS","MS","C","WFC","AXP","BLK","SPGI","CME","JNJ","PFE","MRK","ABBV","TMO","UNH","CVS","MCK","AMGN","GILD","WMT","COST","HD","MCD","SBUX","NKE","DIS","CMCSA","V","MA","PG","KO","PEP","MO","PM","CL","KMB","KR","TGT","LOW","XOM","CVX","COP","EOG","PXD","OXY","SLB","HAL","BKR","VLO","BA","CAT","GE","HON","UNP","FDX","UPS","DE","NEE","DUK","HSBC","BARC","LLOY","RIO","BHP","BP","SHEL","VOD","GSK","AZN"]
-COMMODITIES = ["GC=F","SI=F","PL=F","PA=F","CL=F","BZ=F","NG=F","HG=F","ZC=F","ZS=F","ZW=F","KC=F","SB=F"]
-CRYPTO = ["BTC-USD","ETH-USD","SOL-USD","XRP-USD","ADA-USD","DOGE-USD","AVAX-USD","DOT-USD","MATIC-USD","LINK-USD","UNI-USD","ATOM-USD","NEAR-USD","OP-USD","ARB-USD","FIL-USD","ICP-USD","VET-USD","AAVE-USD","GRT-USD","SHIB-USD","PEPE-USD","BONK-USD","FLOKI-USD"]
-INDICES = ["^GSPC","^DJI","^IXIC","^RUT","^FTSE","^N225","^HSI","^SSEC","^KS11","^AXJO","^BVSP","^MXX","^VIX"]
-FOREX = ["EURUSD=X","GBPUSD=X","USDJPY=X","AUDUSD=X","USDCAD=X","EURGBP=X","EURJPY=X","GBPJPY=X","USDCHF=X","NZDUSD=X"]
+STOCKS = [
+    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "TSLA", "AMD", "NFLX",
+    "ORCL", "CRM", "ADBE", "INTC", "IBM", "QCOM", "TXN", "AVGO",
+    "JPM", "BAC", "GS", "MS", "C", "WFC", "AXP", "BLK", "SPGI", "CME",
+    "JNJ", "PFE", "MRK", "ABBV", "TMO", "UNH", "CVS", "MCK", "AMGN", "GILD",
+    "WMT", "COST", "HD", "MCD", "SBUX", "NKE", "DIS", "CMCSA", "V", "MA",
+    "PG", "KO", "PEP", "MO", "PM", "CL", "KMB", "KR", "TGT", "LOW",
+    "XOM", "CVX", "COP", "EOG", "PXD", "OXY", "SLB", "HAL", "BKR", "VLO",
+    "BA", "CAT", "GE", "HON", "UNP", "FDX", "UPS", "DE", "NEE", "DUK",
+    "HSBC", "BARC", "LLOY", "RIO", "BHP", "BP", "SHEL", "VOD", "GSK", "AZN"
+]
+COMMODITIES = ["GC=F", "SI=F", "PL=F", "PA=F", "CL=F", "BZ=F", "NG=F", "HG=F", "ZC=F", "ZS=F", "ZW=F", "KC=F", "SB=F"]
+CRYPTO = ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "ADA-USD", "DOGE-USD", "AVAX-USD", "DOT-USD", "MATIC-USD", "LINK-USD", "UNI-USD", "ATOM-USD", "NEAR-USD", "OP-USD", "ARB-USD", "FIL-USD", "ICP-USD", "VET-USD", "AAVE-USD", "GRT-USD", "SHIB-USD", "PEPE-USD", "BONK-USD", "FLOKI-USD"]
+INDICES = ["^GSPC", "^DJI", "^IXIC", "^RUT", "^FTSE", "^N225", "^HSI", "^SSEC", "^KS11", "^AXJO", "^BVSP", "^MXX", "^VIX"]
+FOREX = ["EURUSD=X", "GBPUSD=X", "USDJPY=X", "AUDUSD=X", "USDCAD=X", "EURGBP=X", "EURJPY=X", "GBPJPY=X", "USDCHF=X", "NZDUSD=X"]
+
 tickers_list = list(set(STOCKS + COMMODITIES + CRYPTO + INDICES + FOREX))
 tickers_list = [t for t in tickers_list if t]
 
@@ -335,7 +289,7 @@ else:
     st.info("👆 Click the scan button — all markets will be analyzed")
 
 # ──────────────────────────────────────────────
-# SIGNALS — NO WHITE BOXES
+# SIGNALS
 # ──────────────────────────────────────────────
 if signals:
     st.markdown('<div class="section-header">Live Signal Matrix</div>', unsafe_allow_html=True)
