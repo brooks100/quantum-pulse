@@ -1,378 +1,643 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-from datetime import datetime
-import plotly.express as px
 
 # ──────────────────────────────────────────────
 st.set_page_config(
-    page_title="QUANTUM PULSE",
+    page_title="QUANTUM PULSE | Market Intelligence",
     page_icon="⚡",
     layout="wide",
-    initial_sidebar_state="expanded"
+    initial_sidebar_state="collapsed"
 )
 
 # ──────────────────────────────────────────────
-# DARK MODE — FORCED
+# NEON HEADER + PROFESSIONAL BODY
 # ──────────────────────────────────────────────
 st.markdown("""
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;400;500;600;700&family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Orbitron:wght@500;700;900&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
-* { font-family: 'Space Grotesk', sans-serif; }
-code, .mono { font-family: 'JetBrains Mono', monospace; }
+* { font-family: 'Inter', sans-serif; box-sizing: border-box; }
+.mono { font-family: 'JetBrains Mono', monospace; }
 
 html, body, .stApp, .block-container {
-    background-color: #050510 !important;
-    color: #e8e8ff !important;
+    background: #0a0a0f;
+    color: #e8e8f0;
 }
 
-[data-testid="stSidebar"] {
-    background: rgba(10,10,25,0.92) !important;
-    border-right: 1px solid rgba(0,240,255,0.15) !important;
+.block-container {
+    padding-top: 0.5rem;
+    padding-bottom: 3rem;
+    max-width: 1200px;
 }
 
-/* ==============================================
-   TABLES — NO WHITE BOXES EVER
-   ============================================== */
-div[data-testid="stDataFrame"] {
-    background-color: #0f0f23 !important;
-    border: 1px solid rgba(0,240,255,0.2) !important;
-    border-radius: 12px !important;
-}
-div[data-testid="stDataFrame"] table {
-    background-color: #0f0f23 !important;
-    color: #e8e8ff !important;
-}
-div[data-testid="stDataFrame"] th {
-    background-color: #1a1a3a !important;
-    color: #00f0ff !important;
-}
-div[data-testid="stDataFrame"] tr:nth-child(even) {
-    background-color: #14142d !important;
-}
-div[data-testid="stDataFrame"] tr:nth-child(odd) {
-    background-color: #0f0f23 !important;
-}
-div[data-testid="stDataFrame"] td {
-    color: #e8e8ff !important;
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: #0a0a0f; }
+::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: #3a3a4a; }
+
+/* ══════════════════════════════
+   NEON HEADER ANIMATIONS
+   ══════════════════════════════ */
+
+@keyframes neon-flicker {
+    0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
+        text-shadow:
+            0 0 4px #fff,
+            0 0 11px #fff,
+            0 0 19px #fff,
+            0 0 40px #00f0ff,
+            0 0 80px #00f0ff,
+            0 0 90px #00f0ff,
+            0 0 100px #00f0ff,
+            0 0 150px #00f0ff;
+    }
+    20%, 24%, 55% {
+        text-shadow: none;
+    }
 }
 
-/* Title */
-.app-title {
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 4rem;
+@keyframes neon-pulse-cyan {
+    0%, 100% {
+        text-shadow: 0 0 5px #00f0ff, 0 0 15px #00f0ff, 0 0 30px #00f0ff, 0 0 60px #00f0ff;
+    }
+    50% {
+        text-shadow: 0 0 10px #00f0ff, 0 0 25px #00f0ff, 0 0 50px #00f0ff, 0 0 100px #00f0ff, 0 0 140px #00f0ff;
+    }
+}
+
+@keyframes icon-pulse {
+    0%, 100% {
+        filter: drop-shadow(0 0 8px #00f0ff) drop-shadow(0 0 20px #00f0ff);
+        transform: scale(1);
+    }
+    50% {
+        filter: drop-shadow(0 0 15px #ff00aa) drop-shadow(0 0 40px #ff00aa);
+        transform: scale(1.12);
+    }
+}
+
+@keyframes gradient-shift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+@keyframes scan-line {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+}
+
+@keyframes blink {
+    0%, 49% { opacity: 1; }
+    50%, 100% { opacity: 0.2; }
+}
+
+@keyframes border-glow {
+    0%, 100% { box-shadow: 0 0 5px rgba(0,240,255,0.3), inset 0 0 5px rgba(0,240,255,0.1); }
+    50% { box-shadow: 0 0 20px rgba(255,0,170,0.5), inset 0 0 15px rgba(255,0,170,0.15); }
+}
+
+/* HERO */
+.hero {
     text-align: center;
-    letter-spacing: 0.35em;
-    background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 50%, #ff00aa 100%);
+    padding: 3rem 0 2.5rem 0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 20px;
+    margin-bottom: 1rem;
+    animation: border-glow 3s ease-in-out infinite;
+    background: radial-gradient(ellipse at center, rgba(0,240,255,0.05) 0%, transparent 70%);
+}
+
+.hero-icon {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    animation: icon-pulse 1.8s ease-in-out infinite;
+}
+
+.hero-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: clamp(2rem, 6vw, 3.5rem);
+    font-weight: 900;
+    letter-spacing: 0.15em;
+    margin: 0;
+    line-height: 1.1;
+    background: linear-gradient(90deg, #00f0ff, #ff00aa, #7c3aed, #00f0ff);
+    background-size: 300% 100%;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
-    margin: 0.5rem 0 0.2rem 0;
+    animation: gradient-shift 4s ease infinite, neon-flicker 5s linear infinite;
 }
-.app-subtitle {
-    text-align: center;
+
+.hero-sub {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.75rem;
-    letter-spacing: 0.5em;
+    font-size: 0.8rem;
+    color: #00f0ff;
+    letter-spacing: 0.4em;
     text-transform: uppercase;
-    color: #6b7280;
-    margin-bottom: 2rem;
+    margin-top: 1rem;
+    font-weight: 500;
+    animation: neon-pulse-cyan 2s ease-in-out infinite;
 }
-.pulse-line {
+
+.hero-sub .dot {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    background: #00ff88;
+    border-radius: 50%;
+    margin: 0 10px;
+    vertical-align: middle;
+    animation: blink 1s step-end infinite;
+    box-shadow: 0 0 8px #00ff88;
+}
+
+/* Animated line under header */
+.hero-line {
     height: 2px;
-    background: linear-gradient(90deg, transparent, #00f0ff, #7c3aed, #ff00aa, transparent);
-    background-size: 200% 100%;
-    animation: pulseSlide 3s linear infinite;
-    margin: 0 auto 2rem auto;
-    width: 60%;
+    background: linear-gradient(90deg, transparent, #00f0ff, #ff00aa, transparent);
+    margin: 1.5rem auto 0 auto;
+    width: 80%;
+    position: relative;
+    overflow: hidden;
     border-radius: 2px;
 }
-@keyframes pulseSlide {
-    0% { background-position: 200% 0; }
-    100% { background-position: -200% 0; }
+.hero-line::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 40%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, #ffffff, transparent);
+    animation: scan-line 2s linear infinite;
 }
 
-/* Cards */
-.glass-card {
-    background: rgba(20,20,45,0.5) !important;
-    border: 1px solid rgba(255,255,255,0.08) !important;
-    border-radius: 16px;
-    padding: 1.4rem 1.6rem;
+/* ── STATS BAR ── */
+.stats-bar {
+    display: flex;
+    justify-content: center;
+    gap: 2.5rem;
+    padding: 1.2rem 0;
+    margin: 1rem 0;
+    flex-wrap: wrap;
 }
-.card-label {
-    color: #6b7280;
-    font-size: 0.65rem;
-    letter-spacing: 0.25em;
-    text-transform: uppercase;
+.stat-item { text-align: center; }
+.stat-num {
     font-family: 'JetBrains Mono', monospace;
-    margin-bottom: 0.4rem;
-}
-.card-value {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 2rem;
+    font-size: 1.5rem;
     font-weight: 700;
-    color: #f0f0ff;
+    color: #00f0ff;
+    text-shadow: 0 0 10px rgba(0,240,255,0.5);
+}
+.stat-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-top: 0.2rem;
 }
 
-/* Buttons */
-.stButton > button {
-    background: linear-gradient(135deg, #00f0ff 0%, #7c3aed 50%, #ff00aa 100%);
-    color: #ffffff;
-    border: none;
-    border-radius: 14px;
-    padding: 1rem 2.5rem;
-    font-family: 'Rajdhani', sans-serif;
-    font-weight: 700;
-    font-size: 1.1rem;
-    letter-spacing: 0.15em;
+.section-title {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: #64748b;
     text-transform: uppercase;
+    letter-spacing: 0.2em;
+    margin: 2rem 0 1.2rem 0;
+    text-align: center;
+}
+
+/* ── CATEGORY CARDS ── */
+.cat-card {
+    background: linear-gradient(145deg, #14141c, #0f0f16);
+    border: 1px solid #1e1e2e;
+    border-radius: 14px;
+    padding: 1.3rem 1rem;
+    text-align: center;
+    transition: all 0.25s ease;
+    margin-bottom: 0.8rem;
+}
+.cat-card:hover {
+    border-color: #00f0ff;
+    transform: translateY(-3px);
+    box-shadow: 0 8px 30px rgba(0,240,255,0.2);
+}
+.cat-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+.cat-name {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #e2e8f0;
+    margin-bottom: 0.2rem;
+}
+.cat-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    color: #475569;
+}
+
+/* ── CENTERED SCAN BUTTONS ── */
+.stButton {
+    text-align: center !important;
     width: 100%;
 }
-
-/* Section Headers */
-.section-header {
-    font-family: 'Rajdhani', sans-serif;
-    font-size: 1.4rem;
-    font-weight: 600;
-    letter-spacing: 0.15em;
+.stButton > button {
+    background: linear-gradient(135deg, #00f0ff, #7c3aed);
+    color: #fff;
+    border: none;
+    border-radius: 20px;
+    padding: 0.45rem 1.8rem;
+    font-weight: 700;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
     text-transform: uppercase;
-    color: #e0e0ff;
-    margin: 1.5rem 0 0.8rem 0;
+    width: auto !important;
+    display: inline-block !important;
+    transition: all 0.2s ease;
+    box-shadow: 0 0 15px rgba(0,240,255,0.3);
+}
+.stButton > button:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 25px rgba(0,240,255,0.6);
 }
 
-/* Inputs */
-.stTextInput > div > div > input,
-.stNumberInput > div > div > input,
-.stSelectbox > div > div > div {
-    background: rgba(20,20,45,0.7) !important;
-    border: 1px solid rgba(255,255,255,0.15) !important;
-    color: #e0e0ff !important;
+/* ── SIGNAL BADGES ── */
+@keyframes pulse-green {
+    0%,100% { box-shadow: 0 0 0 0 rgba(16,185,129,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(16,185,129,0); }
+}
+@keyframes pulse-red {
+    0%,100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+}
+@keyframes pulse-yellow {
+    0%,100% { box-shadow: 0 0 0 0 rgba(234,179,8,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(234,179,8,0); }
 }
 
-/* Hide Menu */
-#MainMenu, .stDeployButton, footer, [data-testid="stToolbar"] {
-    display: none !important;
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
 }
+.badge-long {
+    background: rgba(16,185,129,0.12);
+    color: #34d399;
+    border: 1px solid rgba(16,185,129,0.3);
+    animation: pulse-green 2s infinite;
+}
+.badge-short {
+    background: rgba(239,68,68,0.12);
+    color: #f87171;
+    border: 1px solid rgba(239,68,68,0.3);
+    animation: pulse-red 2s infinite;
+}
+.badge-hold {
+    background: rgba(234,179,8,0.12);
+    color: #fbbf24;
+    border: 1px solid rgba(234,179,8,0.3);
+    animation: pulse-yellow 2s infinite;
+}
+
+/* ── RESULTS TABLE ── */
+.results-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.85rem;
+}
+.results-table th {
+    background: #14141c;
+    color: #00f0ff;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    padding: 0.8rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #1e1e2e;
+    font-weight: 600;
+}
+.results-table td {
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid #16161f;
+    color: #cbd5e1;
+}
+.results-table tr:hover { background: rgba(0,240,255,0.05); }
+.results-table .ticker {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 600;
+    color: #f1f5f9;
+}
+.results-table .pos { color: #34d399; font-weight: 600; }
+.results-table .neg { color: #f87171; font-weight: 600; }
+
+.summary-card {
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    margin: 0.5rem 0;
+}
+.summary-long {
+    background: rgba(16,185,129,0.08);
+    border: 1px solid rgba(16,185,129,0.25);
+}
+.summary-short {
+    background: rgba(239,68,68,0.08);
+    border: 1px solid rgba(239,68,68,0.25);
+}
+.summary-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin-bottom: 0.5rem;
+}
+
+hr { border-color: #1e1e2e !important; margin: 2rem 0 !important; }
+
+.footer {
+    text-align: center;
+    padding: 2rem 0 1rem 0;
+    color: #475569;
+    font-size: 0.75rem;
+    border-top: 1px solid #16161f;
+    margin-top: 3rem;
+}
+
+@media (max-width: 768px) {
+    .stats-bar { gap: 1.5rem; }
+    .stat-num { font-size: 1.2rem; }
+    .results-table { font-size: 0.75rem; }
+    .results-table th, .results-table td { padding: 0.5rem 0.6rem; }
+}
+
+#MainMenu, footer, [data-testid="stSidebar"] { display: none !important; }
 </style>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
-# SESSION STATE
+# PULSE SOUND
 # ──────────────────────────────────────────────
-for key in ['portfolio', 'journal', 'history']:
-    if key not in st.session_state:
-        st.session_state[key] = {} if key == 'portfolio' else []
-if 'starting_balance' not in st.session_state:
-    st.session_state.starting_balance = 1000.0
+AUDIO_HTML = """
+<audio id="pulseAudio" preload="auto">
+  <source src="data:audio/wav;base64,UklGRiIAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQ4AAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIqK/7dKtQAA////////8PDw8PDw8PDw8PDw9fX19fX19fX19fX1/f39/f39/f39/f39/gICAICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA=" type="audio/wav">
+<script>
+const audioEl = document.getElementById('pulseAudio');
+function playPulse() {
+    if (audioEl) { audioEl.currentTime = 0; audioEl.volume = 0.4; audioEl.play().catch(() => {}); }
+}
+</script>
+"""
+st.components.v1.html(AUDIO_HTML, height=0)
+
+def play_pulse_sound():
+    st.markdown("<script>playPulse();</script>", unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
 # SCAN FUNCTION
 # ──────────────────────────────────────────────
-def get_signal(ticker):
+def get_signal(full_name, ticker):
     try:
         data = yf.Ticker(ticker)
         hist = data.history(period="3mo")
         if hist.empty or len(hist) < 5:
             return None
-        price = hist.iloc[-1]['Close']
-        chg_1w = ((price - hist.iloc[-5]['Close']) / hist.iloc[-5]['Close']) * 100 if len(hist) >= 5 else 0
-        chg_1m = ((price - hist.iloc[0]['Close']) / hist.iloc[0]['Close']) * 100
+        price = round(hist.iloc[-1]['Close'], 2)
+        chg_1w = round(((price - hist.iloc[-5]['Close']) / hist.iloc[-5]['Close']) * 100, 2)
+        chg_1m = round(((price - hist.iloc[0]['Close']) / hist.iloc[0]['Close']) * 100, 2)
         ma20 = hist['Close'].tail(20).mean()
         above_ma = price > ma20
         recent_high = hist['High'].tail(10).max()
-        dd = ((price - recent_high) / recent_high) * 100
+        dd = round(((price - recent_high) / recent_high) * 100, 2)
 
         if above_ma and chg_1w > 0 and chg_1m > 0:
             signal = "LONG"
+            display_signal = "<span class='badge badge-long'>▲ LONG</span>"
         elif (not above_ma) or (chg_1w < -3) or (dd < -8):
             signal = "SHORT"
+            display_signal = "<span class='badge badge-short'>▼ SHORT</span>"
         else:
             signal = "HOLD"
+            display_signal = "<span class='badge badge-hold'>◆ HOLD</span>"
 
         return {
-            "Asset": ticker,
-            "Price": round(price, 2),
-            "1W %": round(chg_1w, 2),
-            "1M %": round(chg_1m, 2),
-            "Signal": signal
+            "Asset": full_name,
+            "Price": price,
+            "1W %": chg_1w,
+            "1M %": chg_1m,
+            "Signal": display_signal,
+            "_signal_raw": signal,
+            "Drawdown %": dd
         }
-    except:
+    except Exception:
         return None
 
+def color_pct(val):
+    if val > 0: return f"<span class='pos'>+{val}%</span>"
+    elif val < 0: return f"<span class='neg'>{val}%</span>"
+    else: return f"<span>{val}%</span>"
+
+def render_table(df):
+    rows_html = ""
+    for _, r in df.iterrows():
+        rows_html += f"""
+        <tr>
+            <td class='ticker'>{r['Asset']}</td>
+            <td class='mono'>{r['Price']}</td>
+            <td>{color_pct(r['1W %'])}</td>
+            <td>{color_pct(r['1M %'])}</td>
+            <td>{r['Signal']}</td>
+            <td>{color_pct(r['Drawdown %'])}</td>
+        </tr>"""
+    return f"""
+    <table class='results-table'>
+        <thead><tr><th>Instrument</th><th>Price</th><th>1W</th><th>1M</th><th>Signal</th><th>Drawdown</th></tr></thead>
+        <tbody>{rows_html}</tbody>
+    </table>"""
+
 # ──────────────────────────────────────────────
-# ASSET LIST
+# CATEGORIES with FULL NAMES
 # ──────────────────────────────────────────────
-STOCKS = [
-    "AAPL", "MSFT", "GOOGL", "GOOG", "AMZN", "NVDA", "META", "TSLA", "AMD", "NFLX",
-    "ORCL", "CRM", "ADBE", "INTC", "IBM", "QCOM", "TXN", "AVGO",
-    "JPM", "BAC", "GS", "MS", "C", "WFC", "AXP", "BLK", "SPGI", "CME",
-    "JNJ", "PFE", "MRK", "ABBV", "TMO", "UNH", "CVS", "MCK", "AMGN", "GILD",
-    "WMT", "COST", "HD", "MCD", "SBUX", "NKE", "DIS", "CMCSA", "V", "MA",
-    "PG", "KO", "PEP", "MO", "PM", "CL", "KMB", "KR", "TGT", "LOW",
-    "XOM", "CVX", "COP", "EOG", "PXD", "OXY", "SLB", "HAL", "BKR", "VLO",
-    "BA", "CAT", "GE", "HON", "UNP", "FDX", "UPS", "DE", "NEE", "DUK",
-    "HSBC", "BARC", "LLOY", "RIO", "BHP", "BP", "SHEL", "VOD", "GSK", "AZN"
+CATEGORIES = [
+    {"icon": "₿", "name": "Cryptocurrency", "assets": [
+        ("Bitcoin", "BTC-USD"),
+        ("Ethereum", "ETH-USD"),
+        ("Solana", "SOL-USD"),
+        ("Ripple", "XRP-USD"),
+        ("Cardano", "ADA-USD"),
+        ("Dogecoin", "DOGE-USD"),
+        ("Avalanche", "AVAX-USD"),
+        ("Polkadot", "DOT-USD"),
+        ("Chainlink", "LINK-USD"),
+        ("Uniswap", "UNI-USD"),
+        ("Cosmos", "ATOM-USD"),
+        ("Near Protocol", "NEAR-USD"),
+        ("Arbitrum", "ARB-USD")
+    ]},
+    {"icon": "🥇", "name": "Precious Metals", "assets": [
+        ("Gold", "GC=F"),
+        ("Silver", "SI=F"),
+        ("Platinum", "PL=F"),
+        ("Palladium", "PA=F")
+    ]},
+    {"icon": "🛢️", "name": "Energy Futures", "assets": [
+        ("Crude Oil WTI", "CL=F"),
+        ("Brent Crude", "BZ=F"),
+        ("Natural Gas", "NG=F"),
+        ("Heating Oil", "HO=F"),
+        ("RBOB Gasoline", "RB=F")
+    ]},
+    {"icon": "🌾", "name": "Grains & Softs", "assets": [
+        ("Corn", "ZC=F"),
+        ("Soybeans", "ZS=F"),
+        ("Wheat", "ZW=F"),
+        ("Coffee", "KC=F"),
+        ("Sugar", "SB=F"),
+        ("Cotton", "CT=F"),
+        ("Cocoa", "CC=F")
+    ]},
+    {"icon": "🔩", "name": "Industrial Metals", "assets": [
+        ("Copper", "HG=F"),
+        ("Aluminium", "ALI=F")
+    ]},
+    {"icon": "📈", "name": "US Stocks", "assets": [
+        ("Apple", "AAPL"),
+        ("Microsoft", "MSFT"),
+        ("Google", "GOOGL"),
+        ("Amazon", "AMZN"),
+        ("NVIDIA", "NVDA"),
+        ("Meta", "META"),
+        ("Tesla", "TSLA"),
+        ("AMD", "AMD"),
+        ("Netflix", "NFLX"),
+        ("Oracle", "ORCL"),
+        ("JPMorgan", "JPM"),
+        ("Goldman Sachs", "GS"),
+        ("Johnson & Johnson", "JNJ"),
+        ("Pfizer", "PFE"),
+        ("Exxon Mobil", "XOM"),
+        ("Chevron", "CVX")
+    ]},
+    {"icon": "🇬🇧", "name": "UK Stocks", "assets": [
+        ("Barclays", "BARC.L"),
+        ("Lloyds", "LLOY.L"),
+        ("HSBC", "HSBA.L"),
+        ("GSK", "GSK.L"),
+        ("AstraZeneca", "AZN.L")
+    ]},
+    {"icon": "📊", "name": "Global Indices", "assets": [
+        ("S&P 500", "^GSPC"),
+        ("Dow Jones", "^DJI"),
+        ("Nasdaq", "^IXIC"),
+        ("FTSE 100", "^FTSE"),
+        ("Nikkei 225", "^N225"),
+        ("DAX Germany", "^GDAXI"),
+        ("CAC 40 France", "^FCHI")
+    ]},
+    {"icon": "💱", "name": "Forex Majors", "assets": [
+        ("EUR/USD", "EURUSD=X"),
+        ("GBP/USD", "GBPUSD=X"),
+        ("USD/JPY", "USDJPY=X"),
+        ("AUD/USD", "AUDUSD=X"),
+        ("USD/CAD", "USDCAD=X"),
+        ("EUR/GBP", "EURGBP=X")
+    ]},
 ]
-COMMODITIES = ["GC=F", "SI=F", "PL=F", "PA=F", "CL=F", "BZ=F", "NG=F", "HG=F", "ZC=F", "ZS=F", "ZW=F", "KC=F", "SB=F"]
-CRYPTO = ["BTC-USD", "ETH-USD", "SOL-USD", "XRP-USD", "ADA-USD", "DOGE-USD", "AVAX-USD", "DOT-USD", "MATIC-USD", "LINK-USD", "UNI-USD", "ATOM-USD", "NEAR-USD", "OP-USD", "ARB-USD", "FIL-USD", "ICP-USD", "VET-USD", "AAVE-USD", "GRT-USD", "SHIB-USD", "PEPE-USD", "BONK-USD", "FLOKI-USD"]
-INDICES = ["^GSPC", "^DJI", "^IXIC", "^RUT", "^FTSE", "^N225", "^HSI", "^SSEC", "^KS11", "^AXJO", "^BVSP", "^MXX", "^VIX"]
-FOREX = ["EURUSD=X", "GBPUSD=X", "USDJPY=X", "AUDUSD=X", "USDCAD=X", "EURGBP=X", "EURJPY=X", "GBPJPY=X", "USDCHF=X", "NZDUSD=X"]
 
-tickers_list = list(set(STOCKS + COMMODITIES + CRYPTO + INDICES + FOREX))
-tickers_list = [t for t in tickers_list if t]
+total_assets = sum(len(c["assets"]) for c in CATEGORIES)
 
 # ──────────────────────────────────────────────
-# SIDEBAR
+# NEON HERO HEADER
 # ──────────────────────────────────────────────
-with st.sidebar:
-    st.markdown('<p style="font-family:Rajdhani; font-size:1.3rem; font-weight:700; text-align:center; letter-spacing:0.2em; color:#00f0ff;">⚡ CONTROL PANEL</p>', unsafe_allow_html=True)
-    st.markdown('<div class="pulse-line" style="width:100%; margin:0.5rem 0;"></div>', unsafe_allow_html=True)
-    st.markdown(f"**📊 TOTAL ASSETS:** `{len(tickers_list)}`")
-    st.caption(f"Stocks {len(set(STOCKS))} · Commodities {len(set(COMMODITIES))} · Crypto {len(CRYPTO)} · Indices {len(INDICES)} · Forex {len(FOREX)}")
-    st.markdown('<div class="pulse-line" style="width:100%; margin:1rem 0;"></div>', unsafe_allow_html=True)
-    st.markdown("**⚙️ RISK SETTINGS**")
-    max_risk_pct = st.slider("Max Single Trade Risk %", 1, 5, 2)
-    st.info("💡 Start at £0.50–£1.00 per point. Always set Stop Loss.")
-
-# ──────────────────────────────────────────────
-# HEADER
-# ──────────────────────────────────────────────
-st.markdown("""
-<h1 class="app-title">QUANTUM PULSE</h1>
-<div class="pulse-line"></div>
-<p class="app-subtitle">AI Market Scanner · Signal Detection · Spread Betting Terminal</p>
+st.markdown(f"""
+<div class='hero'>
+    <div class='hero-icon'>⚡</div>
+    <h1 class='hero-title'>QUANTUM PULSE</h1>
+    <p class='hero-sub'><span class='dot'></span>MARKET INTELLIGENCE · SIGNAL DETECTION<span class='dot'></span></p>
+    <div class='hero-line'></div>
+</div>
+<div class='stats-bar'>
+    <div class='stat-item'><div class='stat-num'>{len(CATEGORIES)}</div><div class='stat-label'>Categories</div></div>
+    <div class='stat-item'><div class='stat-num'>{total_assets}</div><div class='stat-label'>Markets Tracked</div></div>
+    <div class='stat-item'><div class='stat-num'>3</div><div class='stat-label'>Signal Types</div></div>
+    <div class='stat-item'><div class='stat-num'>24/7</div><div class='stat-label'>On Demand</div></div>
+</div>
 """, unsafe_allow_html=True)
 
 # ──────────────────────────────────────────────
-# PERFORMANCE CARDS
+# CARD GRID + CENTERED BUTTONS
 # ──────────────────────────────────────────────
-closed = [j for j in st.session_state.journal if j.get('status') == 'CLOSED']
-total_pnl = sum(t.get('pnl', 0) for t in closed)
-wins = sum(1 for t in closed if t.get('pnl', 0) > 0)
-win_rate = (wins / len(closed) * 100) if closed else 0
-balance = st.session_state.starting_balance + total_pnl
+st.markdown("<div class='section-title'>Select a Market to Scan</div>", unsafe_allow_html=True)
 
-c1, c2, c3, c4 = st.columns(4)
-with c1:
-    st.markdown(f'<div class="glass-card"><div class="card-label">Virtual Balance</div><div class="card-value">£{balance:,.2f}</div></div>', unsafe_allow_html=True)
-with c2:
-    pnl_col = "#00ff88" if total_pnl >= 0 else "#ff4466"
-    st.markdown(f'<div class="glass-card"><div class="card-label">Total P&L</div><div class="card-value" style="color:{pnl_col}">£{total_pnl:+,.2f}</div></div>', unsafe_allow_html=True)
-with c3:
-    st.markdown(f'<div class="glass-card"><div class="card-label">Win Rate</div><div class="card-value">{win_rate:.0f}%</div></div>', unsafe_allow_html=True)
-with c4:
-    st.markdown(f'<div class="glass-card"><div class="card-label">Open Bets</div><div class="card-value">{len(st.session_state.portfolio)}</div></div>', unsafe_allow_html=True)
-
-st.markdown('<div style="height:1.5rem;"></div>', unsafe_allow_html=True)
+cols = st.columns(3)
+for i, cat in enumerate(CATEGORIES):
+    with cols[i % 3]:
+        st.markdown(f"""
+        <div class='cat-card'>
+            <div class='cat-icon'>{cat['icon']}</div>
+            <div class='cat-name'>{cat['name']}</div>
+            <div class='cat-count'>{len(cat['assets'])} assets</div>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("SCAN", key=f"btn_{cat['name']}"):
+            play_pulse_sound()
+            st.session_state[f"scanned_{cat['name']}"] = True
 
 # ──────────────────────────────────────────────
-# SCAN BUTTON
+# RESULTS
 # ──────────────────────────────────────────────
-scan_now = st.button("⚡ INITIATE QUANTUM SCAN — ALL MARKETS")
-signals = []
-if scan_now:
-    scan_time = datetime.now().strftime("%H:%M:%S")
-    st.markdown(f'<p style="color:#00f0ff; font-family:JetBrains Mono;">▸ SCAN INITIATED · {scan_time} · {len(tickers_list)} ASSETS</p>', unsafe_allow_html=True)
-    progress = st.progress(0)
-    status_text = st.empty()
-    for idx, t in enumerate(tickers_list):
-        result = get_signal(t)
-        if result: signals.append(result)
-        progress.progress((idx + 1) / len(tickers_list))
-        status_text.markdown(f"<p style='color:#666; font-size:0.75rem;'>Scanning: {t} ({idx+1}/{len(tickers_list)})</p>", unsafe_allow_html=True)
-    status_text.empty()
-    st.session_state.history.append({"time": scan_time, "count": len(signals)})
-    st.success(f"✅ SCAN COMPLETE — {len(signals)} of {len(tickers_list)} assets found")
-else:
-    st.info("👆 Click the scan button — all markets will be analyzed")
-
-# ──────────────────────────────────────────────
-# SIGNALS
-# ──────────────────────────────────────────────
-if signals:
-    st.markdown('<div class="section-header">Live Signal Matrix</div>', unsafe_allow_html=True)
-    st.caption("🟢 LONG = Buy/Up | 🟡 HOLD = Keep | 🔴 SHORT = Sell/Down")
-    df = pd.DataFrame(signals)
-    def color_sig(val):
-        if val == "LONG": return 'color: #00ff88; font-weight: bold'
-        elif val == "SHORT": return 'color: #ff4466; font-weight: bold'
-        return 'color: #ffc107; font-weight: bold'
-    st.dataframe(df.style.map(color_sig, subset=["Signal"]), width='stretch', hide_index=True)
-
-    st.markdown('<div class="section-header">Top Opportunities</div>', unsafe_allow_html=True)
-    long_df = df[df["Signal"] == "LONG"].sort_values("1M %", ascending=False).head(10)
-    short_df = df[df["Signal"] == "SHORT"].sort_values("1M %", ascending=True).head(10)
-    col1, col2 = st.columns(2)
-    with col1:
-        st.markdown("**🟢 Top LONG (Buy)**")
-        st.dataframe(long_df[["Asset","Price","1W %","1M %"]], width='stretch', hide_index=True) if len(long_df) else st.info("No LONG signals yet")
-    with col2:
-        st.markdown("**🔴 Top SHORT (Sell)**")
-        st.dataframe(short_df[["Asset","Price","1W %","1M %"]], width='stretch', hide_index=True) if len(short_df) else st.info("No SHORT signals yet")
-
-    st.markdown('<div class="section-header">30-Day Momentum</div>', unsafe_allow_html=True)
-    chart_df = df.sort_values("1M %", ascending=False)
-    fig = px.bar(chart_df, x="Asset", y="1M %", color="1M %", color_continuous_scale=["#ff4466","#334155","#00ff88"], template="plotly_dark", height=550)
-    fig.update_layout(plot_bgcolor="rgba(0,0,0,0)", paper_bgcolor="rgba(0,0,0,0)", coloraxis_showscale=False, xaxis_tickangle=-45, font=dict(family="Space Grotesk", size=11))
-    st.plotly_chart(fig, use_container_width=True)
+for cat in CATEGORIES:
+    if st.session_state.get(f"scanned_{cat['name']}"):
+        st.markdown(f"<div class='section-title'>{cat['icon']} {cat['name']} — Results</div>", unsafe_allow_html=True)
+        with st.spinner(f"Scanning {cat['name']}..."):
+            sigs = []
+            for display_name, ticker in cat["assets"]:
+                r = get_signal(display_name, ticker)
+                if r: sigs.append(r)
+        
+        if sigs:
+            df = pd.DataFrame(sigs)
+            st.markdown(render_table(df), unsafe_allow_html=True)
+            
+            ldf = df[df["_signal_raw"] == "LONG"]
+            sdf = df[df["_signal_raw"] == "SHORT"]
+            
+            c1, c2 = st.columns(2)
+            with c1:
+                if len(ldf) > 0:
+                    st.markdown(f"<div class='summary-card summary-long'><div class='summary-title' style='color:#34d399;'>▲ {len(ldf)} Long Signals</div>", unsafe_allow_html=True)
+                    for _, r in ldf.iterrows():
+                        st.markdown(f"<span class='ticker mono'>{r['Asset']}</span> &nbsp; <span class='pos'>+{r['1M %']}% 1M</span>", unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.info("No Long signals")
+            with c2:
+                if len(sdf) > 0:
+                    st.markdown(f"<div class='summary-card summary-short'><div class='summary-title' style='color:#f87171;'>▼ {len(sdf)} Short Signals</div>", unsafe_allow_html=True)
+                    for _, r in sdf.iterrows():
+                        st.markdown(f"<span class='ticker mono'>{r['Asset']}</span> &nbsp; <span class='neg'>{r['1M %']}% 1M</span>", unsafe_allow_html=True)
+                    st.markdown("</div>", unsafe_allow_html=True)
+                else:
+                    st.info("No Short signals")
+        else:
+            st.info("No signals found right now")
+        
+        st.session_state[f"scanned_{cat['name']}"] = False
+        st.divider()
 
 # ──────────────────────────────────────────────
-# JOURNAL
+# FOOTER
 # ──────────────────────────────────────────────
-st.markdown('<div class="section-header">Spread Bet Journal</div>', unsafe_allow_html=True)
-col_a, col_b = st.columns([1, 2])
-with col_a:
-    with st.form("open_bet"):
-        st.markdown("**Log New Bet**")
-        tkr = st.text_input("Market / Ticker", placeholder="e.g. GC=F, EURUSD=X, AAPL")
-        direction = st.selectbox("Direction", ["LONG (Buy/Up)", "SHORT (Sell/Down)"])
-        entry_price = st.number_input("Entry Price", 0.0, step=0.01)
-        stake_per_point = st.number_input("Stake £ per Point", 0.01, step=0.01, value=0.50)
-        reason = st.text_input("Signal / Reason", placeholder="e.g. LONG — strong momentum")
-        if st.form_submit_button("✅ LOG BET") and tkr:
-            dir_short = "LONG" if "LONG" in direction else "SHORT"
-            st.session_state.portfolio[tkr.upper()] = {"direction": dir_short, "entry": entry_price, "stake": stake_per_point, "date": datetime.now().strftime("%Y-%m-%d")}
-            st.session_state.journal.append({"ticker": tkr.upper(), "direction": dir_short, "entry": entry_price, "stake": stake_per_point, "entry_date": datetime.now().strftime("%Y-%m-%d"), "reason": reason, "status": "OPEN"})
-            st.success(f"Logged {dir_short} bet on {tkr.upper()}")
-            st.rerun()
-
-with col_b:
-    if st.session_state.portfolio:
-        st.markdown("**Open Positions**")
-        port_rows = []
-        for t, info in st.session_state.portfolio.items():
-            try:
-                data = yf.Ticker(t); hist = data.history(period="3mo")
-                cur = hist.iloc[-1]['Close'] if not hist.empty else info['entry']
-                pnl = (cur - info['entry']) * info['stake'] if info['direction'] == "LONG" else (info['entry'] - cur) * info['stake']
-                chg_1w = ((cur - hist.iloc[-5]['Close']) / hist.iloc[-5]['Close']) * 100 if len(hist)>=5 else 0
-                ma20 = hist['Close'].tail(20).mean() if len(hist)>=20 else cur
-                dd = ((cur - hist['High'].tail(10).max()) / hist['High'].tail(10).max()) * 100 if len(hist)>=10 else 0
-                exit_sig = "CLOSE" if ((info['direction'] == "LONG" and (cur < ma20 or chg_1w < -3 or dd < -8)) or (info['direction'] == "SHORT" and (cur > ma20 or chg_1w > 3))) else "HOLD"
-                port_rows.append({"Market": t, "Dir": info['direction'], "£/pt": f"£{info['stake']}", "Entry": f"{info['entry']:.2f}", "Now": f"{cur:.2f}", "P&L": f"£{pnl:+,.2f}", "Action": exit_sig})
-            except: pass
-        if port_rows:
-            st.dataframe(pd.DataFrame(port_rows), width='stretch', hide_index=True)
-            close_t = st.selectbox("Close bet:", [""] + list(st.session_state.portfolio.keys()))
-            exit_price = st.number_input("Exit Price", 0.0, step=0.01)
-            if close_t and st.button("🔒 SETTLE BET"):
-                info = st.session_state.portfolio[close_t]
-                pnl = (exit_price - info['entry']) * info['stake'] if info['direction'] == "LONG" else (info['entry'] - exit_price) * info['stake']
-                for j in st.session_state.journal:
-                    if j.get('ticker') == close_t and j.get('status') == 'OPEN':
-                        j['exit'] = exit_price; j['pnl'] = pnl; j['status'] = 'CLOSED'; break
-                del st.session_state.portfolio[close_t]
-                st.rerun()
-    else:
-        st.info("No open bets yet. Run scan → get signal → place in IG/Spreadex → log here.")
-
-if closed:
-    st.markdown('<div class="section-header">Settled Bets</div>', unsafe_allow_html=True)
-    jdf = pd.DataFrame(closed)
-    keep_cols = [c for c in ["ticker","direction","entry_date","stake","entry","exit","pnl"] if c in jdf.columns]
-    st.dataframe(jdf[keep_cols], width='stretch', hide_index=True)
-
-st.markdown('<div style="height:2rem;"></div>', unsafe_allow_html=True)
-st.caption("⚡ QUANTUM PULSE · 100+ Assets · Not financial advice")
+st.markdown("""
+<div class='footer'>
+    ⚡ QUANTUM PULSE · Market Intelligence Platform<br>
+    <span style='font-size:0.7rem;'>For educational purposes only. Not financial advice.</span>
+</div>
+""", unsafe_allow_html=True)
